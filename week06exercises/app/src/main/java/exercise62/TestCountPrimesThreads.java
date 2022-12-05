@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import benchmarking.Benchmark;
 
 public class TestCountPrimesThreads {
-    public static void main(String[] args) { new TestCountPrimesThreads(); }
+	public static void main(String[] args) { new TestCountPrimesThreads(); }
 
     public TestCountPrimesThreads() {
 	final int range = 100_000;

@@ -16,7 +16,7 @@ public class TestTimeSearch {
   public static void main(String[] args) { new TestTimeSearch(); }
 
   public TestTimeSearch() {
-    final String filename = "app/src/main/resources/long-text-file.txt";
+    final String filename = "week05exercises/week05exercises/app/src/main/resources/long-text-file.txt";
     final String target= "ipsum";
 
     final LongCounter lc= new LongCounter();
@@ -30,6 +30,16 @@ public class TestTimeSearch {
 
     // N threads
     countParallelN(target, lineArray, 10, lc);
+
+    SystemInfo();
+    // System.out.println("Mark 7 measurements for search");
+    // Mark7("Search",  i -> search(target, lineArray, 0, lineArray.length, lc));
+    System.out.println("Mark 7 measurements for Paralle search");
+    Mark7("2 threads search",  i -> countParallelN(target, lineArray, 2, lc));
+    Mark7("4 threads search",  i -> countParallelN(target, lineArray, 4, lc));
+    Mark7("8 threads search",  i -> countParallelN(target, lineArray, 8, lc));
+    Mark7("16 threads search",  i -> countParallelN(target, lineArray, 16, lc));
+    Mark7("32 threads search",  i -> countParallelN(target, lineArray, 32, lc));
   }
 
   static long search(String x, String[] lineArray, int from, int to, LongCounter lc){
@@ -96,33 +106,23 @@ public class TestTimeSearch {
 
 
   private static long countParallelN(String target, String[] lineArray, int N, LongCounter lc) {
-        // uses N threads to search lineArray
-        //devide the lineArray into N parts, for each part use a thread to search it 
-        int slot = lineArray.length / N;  //the max length of each part
-        List<Thread> list = new ArrayList<Thread>();  
-        int startPos = 0;
-        for(int i =0; i< N; i++){
-            Thread t = new Thread(() -> {
-                Lock lock = new ReentrantLock();
-                System.out.println(startPos);
-            });
-            t.start();
-
-            list.add(t);
-        }
-
-        try  
-        {  
-            for(Thread thread : list)  
-            {  
-                thread.join();  
-            }  
-        }  
-        catch (InterruptedException e)  
-        {  
-            e.printStackTrace();  
-        }  
-
-        return lc.get();
-}
+    // uses N threads to search lineArray
+    final int perThread = lineArray.length / N;
+    Thread[] threads = new Thread[N];
+    for (int t=0; t<N; t++) {
+        final int from = perThread * t, 
+        to = (t+1==N) ? lineArray.length : perThread * (t+1); 
+        threads[t] = new Thread( () -> {
+          search(target, lineArray,from, to, lc);
+        });
+    }
+    for (int t=0; t<N; t++) 
+      threads[t].start();
+    try {
+      for (int t=0; t<N; t++) 
+        threads[t].join();
+        //System.out.println("Primes: "+lc.get());
+    } catch (InterruptedException exn) { }
+    return lc.get();
+  }
 }

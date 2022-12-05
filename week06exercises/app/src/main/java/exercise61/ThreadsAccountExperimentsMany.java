@@ -1,7 +1,12 @@
 package exercise61;
 import java.util.Random;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.management.RuntimeErrorException;
 
 public class ThreadsAccountExperimentsMany {
 
@@ -17,6 +22,9 @@ public class ThreadsAccountExperimentsMany {
 
   public ThreadsAccountExperimentsMany(){
     pool = Executors.newFixedThreadPool(NO_THREADS);
+    final AtomicInteger count = new AtomicInteger(0);
+    final CyclicBarrier done = new CyclicBarrier(2);
+    
 
     for( int i = 0; i < N; i++){
       accounts[i] = new Account(i);
@@ -28,6 +36,11 @@ public class ThreadsAccountExperimentsMany {
         System.out.println("At i = " + i + " I got error: " + e);
         System.exit(0);
       }
+    } pool.shutdown();
+    try {
+      pool.awaitTermination(60, TimeUnit.SECONDS);
+    } catch (InterruptedException e){
+      throw new RuntimeException(e);
     }
 
 //    for( int i = 0; i<NO_THREADS; i++){
@@ -40,7 +53,6 @@ public class ThreadsAccountExperimentsMany {
 //    for( int i = 0; i<NO_THREADS; i++){
 //      try {threads[i].join();} catch(Exception dummy){};
 //    }
-
   }
   
   private static void doNTransactions(int noTransactions){ // 5
